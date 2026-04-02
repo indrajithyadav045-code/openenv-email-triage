@@ -1,0 +1,29 @@
+name: openenv-email-triage
+version: 1.0
+description: Email inbox triage environment for AI agents
+
+entry_point: run.py
+
+observation_space:
+  type: object
+  properties:
+    emails:
+      type: array
+    unread_count:
+      type: integer
+
+action_space:
+  type: object
+  properties:
+    type:
+      type: string
+    email_id:
+      type: integer
+
+reward:
+  type: float
+
+tasks:
+  - easy
+  - medium
+  - hard
