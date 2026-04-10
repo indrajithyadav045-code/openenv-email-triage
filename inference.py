@@ -3,16 +3,19 @@ import requests
 BASE_URL = "https://indrajit4533-openenvlearningspace.hf.space"
 
 def reset():
-    r = requests.post(f"{BASE_URL}/reset")
-    return r.json()
+    try:
+        return requests.post(f"{BASE_URL}/reset").json()
+    except Exception as e:
+        return {"error": str(e)}
 
 def step(action):
-    r = requests.post(f"{BASE_URL}/step", json=action)
-    return r.json()
+    try:
+        return requests.post(f"{BASE_URL}/step", json=action).json()
+    except Exception as e:
+        return {"error": str(e)}
 
 def state():
-    r = requests.get(f"{BASE_URL}/state")
-    return r.json()
-
-if __name__ == "__main__":
-    print(reset())
+    try:
+        return requests.get(f"{BASE_URL}/state").json()
+    except Exception as e:
+        return {"error": str(e)}
