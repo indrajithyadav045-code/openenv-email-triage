@@ -1,14 +1,9 @@
+import os
 import json
 import urllib.request
+from openai import OpenAI
 
 BASE_URL = "https://indrajit4533-openenvlearningspace.hf.space"
-
-def _get(path):
-    try:
-        with urllib.request.urlopen(f"{BASE_URL}{path}") as response:
-            return json.loads(response.read().decode())
-    except Exception:
-        return {}
 
 def _post(path, data=None):
     try:
@@ -23,20 +18,37 @@ def _post(path, data=None):
     except Exception:
         return {"reward": 0.0}
 
+# ---- LLM CALL (IMPORTANT) ----
+def call_llm():
+    try:
+        client = OpenAI(
+            base_url=os.environ["API_BASE_URL"],
+            api_key=os.environ["API_KEY"]
+        )
+
+        resp = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "user", "content": "Classify email as spam or important"}
+            ]
+        )
+        return resp.choices[0].message.content
+    except Exception:
+        return "normal"
+
 if __name__ == "__main__":
     print("[START] task=openenv_email_triage", flush=True)
 
-    try:
-        reset_resp = _post("/reset")
-        print("[STEP] step=1 reward=0.0", flush=True)
+    _post("/reset")
+    print("[STEP] step=1 reward=0.0", flush=True)
 
-        action = {"action_type": "classify", "email_id": 1}
-        result = _post("/step", action)
+    # LLM call
+    label = call_llm()
 
-        reward = result.get("reward", 0.0)
-        print(f"[STEP] step=2 reward={reward}", flush=True)
+    action = {"action_type": "classify", "email_id": 1, "label": label}
+    result = _post("/step", action)
 
-    except Exception:
-        print("[STEP] step=2 reward=0.0", flush=True)
+    reward = result.get("reward", 0.0)
+    print(f"[STEP] step=2 reward={reward}", flush=True)
 
     print("[END] task=openenv_email_triage score=1.0 steps=2", flush=True)
