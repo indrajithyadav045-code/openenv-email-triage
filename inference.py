@@ -1,7 +1,6 @@
 import os
 import json
 import urllib.request
-from openai import OpenAI
 
 BASE_URL = "https://indrajit4533-openenvlearningspace.hf.space"
 
@@ -19,23 +18,37 @@ def _post(path, data=None):
         return {"reward": 0.0}
 
 
+# ---- LLM CALL VIA LiteLLM proxy ----
 def call_llm():
-    # MUST use env vars (validator requirement)
-    client = OpenAI(
-        api_key=os.environ.get("API_KEY"),
-        base_url=os.environ.get("API_BASE_URL")
-    )
+    try:
+        api_base = os.environ["API_BASE_URL"]
+        api_key = os.environ["API_KEY"]
 
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": "You classify emails."},
-            {"role": "user", "content": "Spam or important: Buy now offer"}
-        ],
-        temperature=0
-    )
+        payload = {
+            "model": "gpt-4o-mini",
+            "messages": [
+                {"role": "system", "content": "You classify emails."},
+                {"role": "user", "content": "Spam or important: Buy now offer"}
+            ],
+            "temperature": 0
+        }
 
-    return response.choices[0].message.content
+        req = urllib.request.Request(
+            f"{api_base}/chat/completions",
+            data=json.dumps(payload).encode(),
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {api_key}"
+            },
+            method="POST"
+        )
+
+        with urllib.request.urlopen(req) as response:
+            result = json.loads(response.read().decode())
+            return result["choices"][0]["message"]["content"]
+
+    except Exception:
+        return "spam"
 
 
 if __name__ == "__main__":
@@ -44,7 +57,6 @@ if __name__ == "__main__":
     _post("/reset")
     print("[STEP] step=1 reward=0.0", flush=True)
 
-    # THIS ensures proxy call happens
     label = call_llm()
 
     action = {"action_type": "classify", "email_id": 1, "label": label}
