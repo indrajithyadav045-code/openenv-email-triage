@@ -1,0 +1,15 @@
+tasks:
+  - name: classify_spam
+    grader:
+      type: exact_match
+      field: label
+
+  - name: classify_important
+    grader:
+      type: exact_match
+      field: label
+
+  - name: classify_normal
+    grader:
+      type: exact_match
+      field: label
